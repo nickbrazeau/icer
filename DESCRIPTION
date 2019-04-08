@@ -1,0 +1,19 @@
+Package: icer
+Type: Package
+Title: Infection composition estimation
+Version: 0.1.0
+Author: OJ Watson <oj.watson@hotmail.co.uk>
+Maintainer: OJ Watson <oj.watson@hotmail.co.uk>
+Description: Maximum likelihood estimator for the occurence
+  of mixed infections given data on mixed infections.
+License: GPL
+Imports: 
+    dplyr,
+    actuar,
+    reshape2,
+    ggplot2,
+    magrittr,
+    rlang
+LazyData: TRUE
+RoxygenNote: 6.1.1
+Encoding: UTF-8

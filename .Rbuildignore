@@ -1,0 +1,6 @@
+.Rproj.user
+.Rhistory
+^analysis
+^.*\.Rproj$
+^\.travis\.yml$
+^\.Rproj\.user$
