@@ -103,7 +103,8 @@ ll_function <- function(params, data,
 }
 
 # boostrap from the probabilities, create the densities and compare to real
-coinf_plot <- function(reps = 5000, probs, levels, total, real, plot = TRUE) {
+coinf_plot <- function(reps = 5000, probs, levels, total, real, plot = TRUE,
+                       quantiles = c(0.025, 0.975)) {
 
   # sample our coinfections
   make_coinfections <- function(test_prop, ss = total) {
@@ -119,8 +120,8 @@ coinf_plot <- function(reps = 5000, probs, levels, total, real, plot = TRUE) {
   sim_melt <- suppressWarnings(reshape2::melt(sim_df))
   sum_melt <- group_by(sim_melt, .data$variable) %>%
     summarise(
-      q5 = quantile(.data$value, 0.05),
-      q95 = quantile(.data$value, 0.95),
+      q_low = quantile(.data$value, quantiles[1]),
+      q_high = quantile(.data$value, quantiles[2]),
       mdx = median(.data$value),
       quantile = if(unique(.data$variable) %in% real$variable) {
         ecdf(.data$value)(real$value[real$variable == unique(.data$variable)])
@@ -138,8 +139,8 @@ coinf_plot <- function(reps = 5000, probs, levels, total, real, plot = TRUE) {
 
   for (v in sum_melt$variable) {
     df_dens <- df_dens[-which(c(df_dens$variable == v &
-                                  (df_dens$x > sum_melt$q95[sum_melt$variable == v] |
-                                     df_dens$x < sum_melt$q5[sum_melt$variable == v]))), ]
+                                  (df_dens$x > sum_melt$q_high[sum_melt$variable == v] |
+                                     df_dens$x < sum_melt$q_low[sum_melt$variable == v]))), ]
   }
 
   area_mdx <- apply(sum_melt, 1, function(x) {
@@ -219,7 +220,8 @@ coinf_plot <- function(reps = 5000, probs, levels, total, real, plot = TRUE) {
 #' res <- cooccurence_test(data = real)
 #'
 #' }
-cooccurence_test <- function(data, max_moi = 25, boot_iter = 10000, plot = TRUE) {
+cooccurence_test <- function(data, max_moi = 25, boot_iter = 10000, plot = TRUE,
+                             quantiles = c(0.025, 0.975)) {
 
   # format our data
   if (is.data.frame(data)) {
