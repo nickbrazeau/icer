@@ -289,7 +289,7 @@ infection_probabilities <- function(multi_dens, params) {
 #'   and the mean moi mu.
 #' @param data Real data to compare model predictions to.
 #' @param pci_list Permutation, composition and infections list.
-#'
+#' @param max_moi Maxuimum infction composition explored. Default = 25.
 #' @details For a given frequency of each strain and mean moi, returns the
 #'   related multionomial distribution describing each infection type.
 #'
@@ -322,8 +322,7 @@ independent <- function(params, data, pci_list,  max_moi = 25) {
 #' @param prob Numeric non-negative vector of length `length(data)`, specifying
 #'   the probability for classes; is internally normalized to sum 1.
 #'   Infinite and missing values are not allowed.
-#' @param k Interference parameters. See details
-#' @param max_moi Maxuimum infction composition explored. Default = 25.
+#' @param k Interference parameters. See details.
 #'
 #' @details Interference parameters describe how the probability density of
 #'   `dmultionom(x, prob=prob)` is altered depending on which is the first draw
@@ -631,7 +630,7 @@ cooccurence_test <- function(data, density_func = independent,
                  "multinom" = fitted_multinomial,
                  "pci_list"= pci_list)
 
-  ret <- list("params" = params, "data" = data, "plot" = coinf)
+  ret <- list("params" = params, "data" = data, "plot" = coinf, "fit"=fit)
   class(ret) <- "icer_cooccurence_test"
 
   # return the fit, data and the plot

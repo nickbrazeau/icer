@@ -13,9 +13,7 @@ interf_dmultinom(x, prob, k)
 the probability for classes; is internally normalized to sum 1.
 Infinite and missing values are not allowed.}
 
-\item{k}{Interference parameters. See details}
-
-\item{max_moi}{Maxuimum infction composition explored. Default = 25.}
+\item{k}{Interference parameters. See details.}
 }
 \value{
 Returns probability density vector of length equal to `length(prob)`
