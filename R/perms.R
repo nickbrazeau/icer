@@ -258,9 +258,6 @@ comp_dens_to_multi_dens <- function(pci_list, densities) {
 #'
 #' }
 
-multi_dens <- matrix(c(0.5,0.3,0.2,0,0,0,0,
-                       0.25,0.09,0.04,0.3,0.2,0.12,0),
-                     nrow = 2,byrow=TRUE)
 infection_probabilities <- function(multi_dens, params) {
 
   # range quantiles for distributions
@@ -326,6 +323,7 @@ independent <- function(params, data, pci_list,  max_moi = 25) {
 #'   the probability for classes; is internally normalized to sum 1.
 #'   Infinite and missing values are not allowed.
 #' @param k Interference parameters. See details
+#' @param max_moi Maxuimum infction composition explored. Default = 25.
 #'
 #' @details Interference parameters describe how the probability density of
 #'   `dmultionom(x, prob=prob)` is altered depending on which is the first draw
@@ -400,6 +398,7 @@ interf_dmultinom <- function(x, prob, k){
 #'   and the mean moi mu.
 #' @param data Real data to compare model predictions to.
 #' @param pci_list Permutation, composition and infections list.
+#' @param max_moi Maxuimum infction composition explored. Default = 25.
 #'
 #' @details For a given frequency of each strain and mean moi, returns the
 #'   related multionomial distribution describing each infection type. `params`
@@ -608,14 +607,14 @@ cooccurence_test <- function(data, density_func = independent,
     )
   )
 
-  # remember to format the probabilities so they add to 1
-  freqs <- head(fit$par, freq_length)
-  freqs <- freqs / sum(freqs)
-  fit$par[seq_len(freq_length)] <- freqs
-
   # work out what the resultant multinomial distribution was
   fitted_multinomial <- density_func(params = fit$par, data = data,
                                      pci_list = pci_list, max_moi = max_moi)
+
+  # remember to format the probabilities so they add to 1 for reporting reasons
+  freqs <- head(fit$par, freq_length)
+  freqs <- freqs / sum(freqs)
+  fit$par[seq_len(freq_length)] <- freqs
 
   # create the bootstrapped coinf plot
   coinf <- coinf_plot(
@@ -628,12 +627,9 @@ cooccurence_test <- function(data, density_func = independent,
   )
 
   # grab the fit
-  params <- list("params" = fit$par, "multinom" = fitted_multinomial)
-
-  # grab the data and format it to reflect the multinom and fill in any nas
-  data <- data[match(names(params$multinom), names(data))]
-  names(data) <- names(params$multinom)
-  data[is.na(data)] <- 0
+  params <- list("params" = fit$par,
+                 "multinom" = fitted_multinomial,
+                 "pci_list"= pci_list)
 
   ret <- list("params" = params, "data" = data, "plot" = coinf)
   class(ret) <- "icer_cooccurence_test"

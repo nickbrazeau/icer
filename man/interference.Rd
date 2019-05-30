@@ -13,6 +13,8 @@ and the mean moi mu.}
 \item{data}{Real data to compare model predictions to.}
 
 \item{pci_list}{Permutation, composition and infections list.}
+
+\item{max_moi}{Maxuimum infction composition explored. Default = 25.}
 }
 \value{
 Returns a named multinomial probability distribution.

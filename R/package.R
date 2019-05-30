@@ -5,6 +5,7 @@
 #' @name icer
 #'
 #' @importFrom stats density dmultinom ecdf median optim quantile weighted.mean
+#' @importFrom stats dnbinom dpois
 #' @importFrom utils head tail
 #' @importFrom dplyr group_by near summarise do
 #' @importFrom ggplot2 geom_density geom_vline ggplot theme theme_bw unit
