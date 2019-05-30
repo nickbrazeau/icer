@@ -1,5 +1,5 @@
 ---
-  output: github_document
+output: github_document
 ---
 ```{r, echo = FALSE}
 library(knitr)
@@ -42,7 +42,7 @@ Let's assume we have some data about occurence of *Plasmodium falciparum*,
 *malariae* and *vivax* as follows:
 
 ```{r data}
-data <- c("pf" = 902, "pm" = 14, "pv" = 44,
+data <- c("pf" = 902, "pm" = 200, "pv" = 44,
           "pf/pm" = 9, "pf/pv" = 29, "pm/pv" = 1, 
           "pf/pm/pv" = 1)
 
@@ -56,33 +56,34 @@ library(icer)
 res <- cooccurence_test(data)
 ```
 
-The resultant plot suggests that independent infection events explain this data
-well, with the boostrapped estimates from the best fitting model including 
+The resultant plot suggests that independent infection events do not
+perfectly explain this data, with the predicted number of pf/pm being too 
+high, with the boostrapped estimates from the best fitting model notincluding 
 the observed data well (5%-95% quantile in blue, median in white and observed
 data in red).
 
-We also can seee what the best estimate of the frequencies of each species, the 
-mean number of infections (different to number of different species, i.e. you could
-have 6 infections but be Pf/Pv if you have 4 Pf infections and 2 Pv infections). 
+We can then change what type of model we use to describe the acquisition of 
+species. For example maybe there is some interference between falciparum and 
+malariae and the inverse for falciparu and vivax. We can specify starting values
+for how the probability of acquiring an additional strains depends of the first
+strain acquired. e.g. `k_12` is the multiplication of the probability of the 
+next infection being `pm` given the first infection was `pf` and vice versa, 
+i.e. next infection being `pf` given the first infection was `pm`. (The numbers
+refer to the species by alphabetic order):
+
+```{r}
+res_interf <- cooccurence_test(data, density_func = icer:::interference, 
+                               k_12 = 0.5, k_13 = 2, k_23 = 1)
+```
+
+That's a lot better! We can see what the best estimate of the frequencies of 
+each species, the mean number of infections (different to number of different species,
+i.e. you could have 6 infections but be Pf/Pv if you have 4 Pf infections and 2
+Pv infections), and the values for the interference. 
 
 ```{r params}
-str(res$params)
+res_interf$params
 ```
 
 ---
-
-## Extensions Needed
-
-1. Currently infections is escribed by a zero truncated poisson distribution 
-and would be good to include a more dispersed zero truncated negative binomial. 
-
-2. Tweak the independence assumption and explore the assumption that there could
-be some suppresion, i.e. if the first strain is Pf, the prob of Po is lower and
-fit this too in our model. 
-
-3. Incorporate alternative explanations for "suppression". One could simply be 
-fine scale spatial heterogeneity in the prevalence of the species, i.e. what 
-looks like suppression is just fine spatial patterns with different frequencies of 
-each species, and as such your more likely to see mono species infection because 
-of local hotspots of a particular species.
 

@@ -4,15 +4,36 @@
 \alias{cooccurence_test}
 \title{Co-occurence test}
 \usage{
-cooccurence_test(data, max_moi = 25, boot_iter = 10000)
+cooccurence_test(data, density_func = independent, max_moi = 25,
+  poisson = FALSE, boot_iter = 10000, plot = TRUE,
+  quantiles = c(0.025, 0.975), lower = NULL, upper = NULL, ...)
 }
 \arguments{
 \item{data}{Observed data. Either as a named vector or a 2 column
 \code{\link{data.frame}}. See examples for more info.}
 
+\item{density_func}{Function that calculates the multinomial distribution
+describing the data. Default = \code{independent}}
+
 \item{max_moi}{Maxuimum infction composition explored. Default = 25.}
 
+\item{poisson}{Logical for determining if we use a poisson distribution to
+describe the numer of infection occurences. Default = `FALSE`, which means
+a negative binomial is used. `}
+
 \item{boot_iter}{Bootstrap iterations. Default = 10000}
+
+\item{plot}{Boolean for default plotting the bootsrap results. Default = TRUE}
+
+\item{quantiles}{Vector of length 2 for the quantiles used. Default = `c(0.025, 0.975)`}
+
+\item{lower}{Vector of lower bounds used in fitting. Default = NULL, which will
+create a vector with 0.0001 for each frequency and 0.1 for the moi.}
+
+\item{upper}{Vector of upper bounds used in fitting. Default = NULL, which will
+create a vector with 0.9999 for each frequency and `max_moi` for the moi.}
+
+\item{...}{Any other arguments that will be passed to `density_func``}
 }
 \value{
 Invisibly returns a list containing the estimated parameters
