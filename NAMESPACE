@@ -2,7 +2,6 @@
 
 export("%>%")
 export(cooccurence_test)
-export(likelihood_test)
 importFrom(dplyr,do)
 importFrom(dplyr,group_by)
 importFrom(dplyr,near)
