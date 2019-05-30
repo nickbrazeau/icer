@@ -34,7 +34,7 @@ Let’s assume we have some data about occurence of *Plasmodium
 falciparum*, *malariae* and *vivax* as follows:
 
 ``` r
-data <- c("pf" = 902, "pm" = 14, "pv" = 44,
+data <- c("pf" = 902, "pm" = 200, "pv" = 44,
           "pf/pm" = 9, "pf/pv" = 29, "pm/pv" = 1, 
           "pf/pm/pv" = 1)
 ```
@@ -44,50 +44,71 @@ than best explained by the data and the independence model.
 
 ``` r
 library(icer)
+#> Registered S3 methods overwritten by 'ggplot2':
+#>   method         from 
+#>   [.quosures     rlang
+#>   c.quosures     rlang
+#>   print.quosures rlang
 res <- cooccurence_test(data)
-#> final  value 12.355387 
+#> iter   10 value 38.971224
+#> final  value 38.971219 
 #> converged
 #> No id variables; using all as measure variables
 ```
 
-![](https://i.imgur.com/kewI3d7.png)<!-- -->
+![](https://i.imgur.com/l5kTqQt.png)<!-- -->
 
-The resultant plot suggests that independent infection events explain
-this data well, with the boostrapped estimates from the best fitting
-model including the observed data well (5%-95% quantile in blue, median
-in white and observed data in red).
+The resultant plot suggests that independent infection events do not
+perfectly explain this data, with the predicted number of pf/pm being
+too high, with the boostrapped estimates from the best fitting model
+notincluding the observed data well (5%-95% quantile in blue, median in
+white and observed data in red).
 
-We also can seee what the best estimate of the frequencies of each
-species, the mean number of infections (different to number of different
-species, i.e. you could have 6 infections but be Pf/Pv if you have 4 Pf
-infections and 2 Pv infections).
+We can then change what type of model we use to describe the acquisition
+of species. For example maybe there is some interference between
+falciparum and malariae and the inverse for falciparu and vivax. We can
+specify starting values for how the probability of acquiring an
+additional strains depends of the first strain acquired. e.g. `k_12` is
+the multiplication of the probability of the next infection being `pm`
+given the first infection was `pf` and vice versa, i.e. next infection
+being `pf` given the first infection was `pm`. (The numbers refer to the
+species by alphabetic
+order):
 
 ``` r
-str(res$params)
-#> List of 3
-#>  $ freqs   : Named num [1:3] 0.9225 0.0192 0.0583
-#>   ..- attr(*, "names")= chr [1:3] "pf" "pm" "pv"
-#>  $ lambda  : Named num 0.563
-#>   ..- attr(*, "names")= chr ""
-#>  $ multinom: Named num [1:7] 0.9008 0.0144 0.04413 0.00981 0.03006 ...
-#>   ..- attr(*, "names")= chr [1:7] "pf" "pm" "pv" "pf/pm" ...
+res_interf <- cooccurence_test(data, density_func = icer:::interference, 
+                               k_12 = 0.5, k_13 = 2, k_23 = 1)
+#> iter   10 value 15.580477
+#> iter   20 value 13.643069
+#> iter   30 value 13.516104
+#> iter   40 value 13.188206
+#> iter   50 value 13.092270
+#> final  value 13.082618 
+#> converged
+#> No id variables; using all as measure variables
+```
+
+![](https://i.imgur.com/mIGrkTw.png)<!-- -->
+
+That’s a lot better\! We can see what the best estimate of the
+frequencies of each species, the mean number of infections (different to
+number of different species, i.e. you could have 6 infections but be
+Pf/Pv if you have 4 Pf infections and 2 Pv infections), and the values
+for the interference.
+
+``` r
+res_interf$params
+#> $params
+#>           pf           pm           pv           mu         size 
+#> 7.657616e-01 1.755459e-01 5.869248e-02 1.726855e+00 1.000043e+02 
+#>         k_12         k_13         k_23 
+#> 7.764434e-03 5.867866e-02 1.000000e-02 
+#> 
+#> $multinom
+#>           pf           pm           pv        pf/pm        pf/pv 
+#> 0.7604943863 0.1687349573 0.0367985499 0.0076748673 0.0245925814 
+#>        pm/pv     pf/pm/pv 
+#> 0.0012177302 0.0004869276
 ```
 
 -----
-
-## Extensions Needed
-
-1.  Currently infections is escribed by a zero truncated poisson
-    distribution and would be good to include a more dispersed zero
-    truncated negative binomial.
-
-2.  Tweak the independence assumption and explore the assumption that
-    there could be some suppresion, i.e. if the first strain is Pf, the
-    prob of Po is lower and fit this too in our model.
-
-3.  Incorporate alternative explanations for “suppression”. One could
-    simply be fine scale spatial heterogeneity in the prevalence of the
-    species, i.e. what looks like suppression is just fine spatial
-    patterns with different frequencies of each species, and as such
-    your more likely to see mono species infection because of local
-    hotspots of a particular species.
