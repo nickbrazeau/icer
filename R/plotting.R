@@ -1,7 +1,14 @@
 # nice density plot using melted data.frame
 dens_plot <- function(x, real, levels,
                      var = "variable", val = "value",
-                     quantiles = c(0.025, 0.975)) {
+                     quantiles = c(0.025, 0.975),
+                     scales = "free", ncol = 5) {
+
+
+  if(!is.data.frame(real)) {
+    real <- data.frame("variable" = names(real),
+                       "value" = as.numeric(real))
+  }
 
   sum_melt <- group_by(x, .data[[var]]) %>%
     summarise(
@@ -54,7 +61,8 @@ dens_plot <- function(x, real, levels,
               fill = "#002366", color = "white", inherit.aes = FALSE) +
     geom_vline(data = real, aes(xintercept = .data[[val]]),
                col = "#e62400", size = 1, linetype = "dashed") +
-    facet_wrap( ~ .data[[var]], scales = "free")  + theme_bw() + xlab("") + ylab("Density") +
+    facet_wrap( ~ .data[[var]], scales = scales, ncol=ncol)  + theme_bw() +
+    xlab("") + ylab("Density") +
     theme(axis.text.x = element_text(),
           panel.spacing = unit(10, units = "pt"),
           axis.title.y = element_text(size = 12),
@@ -67,7 +75,7 @@ dens_plot <- function(x, real, levels,
 
 # boostrap from the probabilities, create the densities and compare to real
 coinf_plot <- function(reps = 5000, probs, levels, total, real, plot = TRUE,
-                       quantiles = c(0.025, 0.975)) {
+                       quantiles = c(0.025, 0.975),...) {
 
   # sample our coinfections
   make_coinfections <- function(test_prop, ss = total) {
@@ -84,7 +92,8 @@ coinf_plot <- function(reps = 5000, probs, levels, total, real, plot = TRUE,
 
   # make the density plot
   g1 <- dens_plot(x = sim_melt, real = real,
-                  levels = levels, quantiles = quantiles)
+                  levels = levels, quantiles = quantiles,
+                  ...)
 
   if (plot) {
     print(g1)

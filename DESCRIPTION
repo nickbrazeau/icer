@@ -1,7 +1,7 @@
 Package: icer
 Type: Package
 Title: Infection composition estimation
-Version: 0.1.0
+Version: 0.2.0
 Author: OJ Watson <oj.watson@hotmail.co.uk>
 Maintainer: OJ Watson <oj.watson@hotmail.co.uk>
 Description: Maximum likelihood estimator for the occurence

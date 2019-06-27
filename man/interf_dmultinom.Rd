@@ -4,7 +4,7 @@
 \alias{interf_dmultinom}
 \title{Interference mutlinomial distribution}
 \usage{
-interf_dmultinom(x, prob, k)
+interf_dmultinom(x, prob, k, interf)
 }
 \arguments{
 \item{x}{Vector of length equal to `data` of integers in `0:sum(data)`.}
@@ -14,6 +14,8 @@ the probability for classes; is internally normalized to sum 1.
 Infinite and missing values are not allowed.}
 
 \item{k}{Interference parameters. See details.}
+
+\item{interf}{Interference relationships. Output of \code{interf_pair_pos}}
 }
 \value{
 Returns probability density vector of length equal to `length(prob)`

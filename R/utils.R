@@ -20,3 +20,8 @@ rbind_list_base <- function(x) {
   rownames(x2) <- seq_len(dim(x2)[1])
   x2
 }
+
+#' @noRd
+remove_duplicates <- function(x) {
+  x[!(duplicated(x) | duplicated(x, fromLast = TRUE))]
+}

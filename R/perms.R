@@ -323,6 +323,7 @@ independent <- function(params, data, pci_list,  max_moi = 25) {
 #'   the probability for classes; is internally normalized to sum 1.
 #'   Infinite and missing values are not allowed.
 #' @param k Interference parameters. See details.
+#' @param interf Interference relationships. Output of \code{interf_pair_pos}
 #'
 #' @details Interference parameters describe how the probability density of
 #'   `dmultionom(x, prob=prob)` is altered depending on which is the first draw
@@ -351,29 +352,24 @@ independent <- function(params, data, pci_list,  max_moi = 25) {
 #'    Interferences are thus symmetrical between events.
 #'
 #' @return Returns probability density vector of length equal to `length(prob)`
-interf_dmultinom <- function(x, prob, k){
+interf_dmultinom <- function(x, prob, k, interf){
 
   # which positions in x could have been drawn first
   pos <- which(x > 0)
 
-  # adjust k if it is only one parameter long
-  if(length(k)==1){
-    k <- rep(k,length(x))
-  }
-
   # create our density to be added to for each possible first draw
   dens <- 0
 
-  # if k has _ in the names then doing interference
-  if(all(grepl("_",names(k)))){
+  # if interference
+  if(!is.logical(interf)){
 
     # loop through each positon in x that could be decreased
     for(i in pos){
       x_new <- x
       x_new[i] <- x_new[i]-1
       prob_new <- prob
-      prob_new[-i] <- prob_new[-i]*k[grep(i, names(k))]
-      dens <- dens + dmultinom(x_new,prob=prob_new) * prob[i]
+      prob_new[interf$p[[i]]] <- prob_new[interf$p[[i]]]*k[interf$k[[i]]]
+      dens <- dens + dmultinom(x_new, prob=prob_new) * prob[i]
     }
 
     # otherwise we are doing modulation
@@ -389,6 +385,25 @@ interf_dmultinom <- function(x, prob, k){
 
   }
   return(dens)
+}
+
+#' @noRd
+interf_pair_pos <- function(k, n) {
+
+  if(all(grepl("_", names(k)))){
+    interf <- list()
+    interf$k <- lapply(seq_len(n), grep, names(k))
+    interf$p <- lapply(seq_len(n), function(x){
+      p_ch <- grep(x, names(k))
+      v <- unlist(strsplit(gsub("k_([0-9]+)$", "\\1", names(k[p_ch])),""))
+      v <- v[v!=as.numeric(x)]
+      return(as.numeric(v))
+    })
+  } else {
+    interf <- FALSE
+  }
+
+  return(interf)
 }
 
 #' Interference model of strain acquisition
@@ -419,9 +434,17 @@ interference <- function(params, data, pci_list,  max_moi = 25) {
     k <- 1
   }
 
+  # adjust k if it is only one parameter long
+  if(length(k) == 1){
+    k <- rep(k, n_sp)
+  }
+
+  # what is the interference relationship
+  interf <- interf_pair_pos(k, n_sp)
+
   # Density of each infection composition using a multinomial distribution
   densities <- lapply(pci_list$perms, function(x){
-    dens <- apply(x, 1, interf_dmultinom, prob = freqs, k = k)
+    dens <- apply(x, 1, interf_dmultinom, prob = freqs, k = k, interf = interf)
   })
 
   # turn these into a a matrix of multinomial densities
@@ -458,6 +481,8 @@ ll_function <- function(params, data, pci_list,
 #' @param poisson Logical for determining if we use a poisson distribution to
 #'   describe the numer of infection occurences. Default = `FALSE`, which means
 #'   a negative binomial is used. `
+#' @param size Starting value for the negative binomial size parameter.
+#'   Default = 100.
 #' @param boot_iter Bootstrap iterations. Default = 10000
 #' @param plot Boolean for default plotting the bootsrap results. Default = TRUE
 #' @param quantiles Vector of length 2 for the quantiles used. Default = `c(0.025, 0.975)`
@@ -497,6 +522,7 @@ ll_function <- function(params, data, pci_list,
 #' }
 cooccurence_test <- function(data, density_func = independent,
                              max_moi = 25, poisson = FALSE,
+                             size = 100,
                              boot_iter = 10000, plot = TRUE,
                              quantiles = c(0.025, 0.975),
                              lower = NULL, upper = NULL,
@@ -522,7 +548,6 @@ cooccurence_test <- function(data, density_func = independent,
     lapply(paste0, collapse = "/") %>%
     tolower %>%
     unlist
-  names(real$variable)
   data <- real$value
   names(data) <- tolower(real$variable)
 
@@ -545,7 +570,7 @@ cooccurence_test <- function(data, density_func = independent,
 
   # are we using a poisson or neg binomial for infections
   if (!poisson) {
-    start <- c(start, "size" = 100)
+    start <- c(start, "size" = size)
   }
 
   # add any additonal parameters that need to be fit relevant to model
@@ -603,7 +628,8 @@ cooccurence_test <- function(data, density_func = independent,
       trace = TRUE,
       fnscale = -1,
       maxit = 10000
-    )
+    ),
+    hessian = TRUE
   )
 
   # work out what the resultant multinomial distribution was
@@ -627,10 +653,10 @@ cooccurence_test <- function(data, density_func = independent,
 
   # grab the fit
   params <- list("params" = fit$par,
-                 "multinom" = fitted_multinomial,
-                 "pci_list"= pci_list)
+                 "multinom" = fitted_multinomial)
 
-  ret <- list("params" = params, "data" = data, "plot" = coinf, "fit"=fit)
+  ret <- list("params" = params, "data" = data, "plot" = coinf,
+              "fit" = fit, "pci_list" = pci_list)
   class(ret) <- "icer_cooccurence_test"
 
   # return the fit, data and the plot

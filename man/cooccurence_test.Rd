@@ -5,7 +5,7 @@
 \title{Co-occurence test}
 \usage{
 cooccurence_test(data, density_func = independent, max_moi = 25,
-  poisson = FALSE, boot_iter = 10000, plot = TRUE,
+  poisson = FALSE, size = 100, boot_iter = 10000, plot = TRUE,
   quantiles = c(0.025, 0.975), lower = NULL, upper = NULL, ...)
 }
 \arguments{
@@ -20,6 +20,9 @@ describing the data. Default = \code{independent}}
 \item{poisson}{Logical for determining if we use a poisson distribution to
 describe the numer of infection occurences. Default = `FALSE`, which means
 a negative binomial is used. `}
+
+\item{size}{Starting value for the negative binomial size parameter.
+Default = 100.}
 
 \item{boot_iter}{Bootstrap iterations. Default = 10000}
 
