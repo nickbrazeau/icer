@@ -1,0 +1,61 @@
+---
+title: "Introduction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(icer)
+```
+
+
+```{r}
+# if we don't want to use a wrapper
+
+obj <- new("surveillance")
+obj@denominator <- 500
+obj@cases <- c(50, 100, 25)
+obj@casenames <- c("a", "b", "a/b")
+
+spcs <- obj@casenames[!grepl("/", obj@casenames)]
+# get start from data
+marginalprob <- sapply(spcs, function(x) {
+  sum(real$value[grep(x, real$variable)])/total
+})
+
+dat <- c(325, obj@cases)
+names(dat) <- c("noinfxn", obj@casenames)
+
+comps <- generate_composition_levels(obj@casenames[!grepl("/", obj@casenames)])
+maxmoi <- 2
+perms <- lapply(1:maxmoi, moi_perms, n = length(obj@casenames[!grepl("/", obj@casenames)]))
+infs <- find_composition_level(nms = obj@casenames[!grepl("/", obj@casenames)], perms)
+pci_list <- list("comps" = comps, "perms" = perms, "infs" = infs)
+densities <- lapply(pci_list$perms, function(x){
+  dens <- apply(x, 1, dmultinom, size = sum(x[1,]), prob = marginalprob)
+  })
+
+
+
+comp.prob <- comp_dens_to_multi_dens(pci_list = pci_list, densities = densities)
+w <- moi_probabilities(obj=obj, maxmoi = 2, params = c("mu" = 2))
+get_join_comp_moi_prob(obj = obj, multi_dens = comp.prob, w = w)
+
+
+ll_function(obj = obj, params = params, pci_list = pci_list,
+            density_func = independent, max_moi = 2, 
+            data = dat)
+
+
+```
+

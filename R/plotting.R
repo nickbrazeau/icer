@@ -72,8 +72,21 @@ dens_plot <- function(x, real, levels,
 
 }
 
+#' Perform a bootstrap and plot the expected versus observed infection distributions
+#' @param boot_iter Bootstrap iterations. Default = 10000
+#' @param plot Boolean for default plotting the bootsrap results. Default = TRUE
+#' @param quantiles Vector of length 2 for the quantiles used. Default = `c(0.025, 0.975)`
+#'
+#' @details
+#' \enumerate{
+#'        \item Bostrap from the fitted multinomial probabilities
+#'        \item Plot the simulated densities
+#'        \item Compare to the observed data
+#'   }
+#'
+#' @return ggplot object
 
-# boostrap from the probabilities, create the densities and compare to real
+
 coinf_plot <- function(reps = 5000, probs, levels, total, real, plot = TRUE,
                        quantiles = c(0.025, 0.975),...) {
 
