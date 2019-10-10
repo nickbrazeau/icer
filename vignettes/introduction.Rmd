@@ -1,16 +1,20 @@
 ---
-title: "Introduction"
+title: "... Introduction ..."
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Introduction}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  results = 'hide'
 )
 ```
 
@@ -18,44 +22,95 @@ knitr::opts_chunk$set(
 library(icer)
 ```
 
+# Introduction
+The purpose ... 
+
+## Class Structure
+### Surveillance 
+Some words about denominators 
 
 ```{r}
 # if we don't want to use a wrapper
 
-obj <- new("surveillance")
-obj@denominator <- 500
-obj@cases <- c(50, 100, 25)
-obj@casenames <- c("a", "b", "a/b")
+surv <- new("surveillance")
+surv@denominator <- 15859
+surv@cases <- c(4734, 328, 152)
+surv@casenames <- c("pf", "pv", "pf/pv")
 
-spcs <- obj@casenames[!grepl("/", obj@casenames)]
-# get start from data
-marginalprob <- sapply(spcs, function(x) {
-  sum(real$value[grep(x, real$variable)])/total
-})
+```
 
-dat <- c(325, obj@cases)
-names(dat) <- c("noinfxn", obj@casenames)
 
-comps <- generate_composition_levels(obj@casenames[!grepl("/", obj@casenames)])
-maxmoi <- 2
-perms <- lapply(1:maxmoi, moi_perms, n = length(obj@casenames[!grepl("/", obj@casenames)]))
-infs <- find_composition_level(nms = obj@casenames[!grepl("/", obj@casenames)], perms)
-pci_list <- list("comps" = comps, "perms" = perms, "infs" = infs)
-densities <- lapply(pci_list$perms, function(x){
-  dens <- apply(x, 1, dmultinom, size = sum(x[1,]), prob = marginalprob)
-  })
+```{r}
+
+surv.mle <- icer::cooccurence_mle(obj = surv, 
+                      density_func = icer:::independent,
+                      max_moi = 5, poisson = T)
+
+knitr::kable(surv.mle$multinom)
+
+```
 
 
 
-comp.prob <- comp_dens_to_multi_dens(pci_list = pci_list, densities = densities)
-w <- moi_probabilities(obj=obj, maxmoi = 2, params = c("mu" = 2))
-get_join_comp_moi_prob(obj = obj, multi_dens = comp.prob, w = w)
+### Case Detection
+some words about not having a denominator. 
+```{r}
+# if we don't want to use a wrapper
+
+cd <- new("casedetect")
+cd@cases <- c(50, 100, 25)
+cd@casenames <- c("a", "b", "a/b")
+
+```
 
 
-ll_function(obj = obj, params = params, pci_list = pci_list,
-            density_func = independent, max_moi = 2, 
-            data = dat)
+```{r, results='asis'}
+
+cd.mle <- icer::cooccurence_mle(obj = cd, 
+                                density_func = icer:::independent,
+                                max_moi = 5, poisson = T)
+
+knitr::kable(cd.mle$multinom)
+
+```
+
+
+## Nuts and Bolts
+The `icer::cooccurence_mle` function above is a wrapper for several steps. We will explore these below... 
+```{r}
+
+# 
+# spcs <- obj@casenames[!grepl("/", obj@casenames)]
+# # get start from data
+# marginalprob <- sapply(spcs, function(x) {
+#   sum(real$value[grep(x, real$variable)])/total
+# })
+# 
+# dat <- c(325, obj@cases)
+# names(dat) <- c("noinfxn", obj@casenames)
+# 
+# comps <- generate_composition_levels(obj@casenames[!grepl("/", obj@casenames)])
+# maxmoi <- 2
+# perms <- lapply(1:maxmoi, moi_perms, n = length(obj@casenames[!grepl("/", obj@casenames)]))
+# infs <- find_composition_level(nms = obj@casenames[!grepl("/", obj@casenames)], perms)
+# pci_list <- list("comps" = comps, "perms" = perms, "infs" = infs)
+# densities <- lapply(pci_list$perms, function(x){
+#   dens <- apply(x, 1, dmultinom, size = sum(x[1,]), prob = marginalprob)
+#   })
+# 
+# 
+# 
+# comp.prob <- comp_dens_to_multi_dens(pci_list = pci_list, densities = densities)
+# w <- moi_probabilities(obj=obj, maxmoi = 2, params = c("mu" = 2))
+# get_join_comp_moi_prob(obj = obj, multi_dens = comp.prob, w = w)
+# 
+# 
+# ll_function(obj = obj, params = params, pci_list = pci_list,
+#             density_func = independent, max_moi = 2, 
+#             data = dat)
 
 
 ```
+
+
 

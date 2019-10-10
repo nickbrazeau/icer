@@ -39,7 +39,8 @@ checkclass <- function(obj){
   # note, no assertions needed to check slot types
   # this is handled by S4 create
   assert_custom_class(x = obj, c = c("surveillance", "casedetect"))
-  if(assert_custom_class(x = obj, c = c("surveillance"))){
+
+  if(inherits(obj, "surveillance")){
 
     assert_length(obj@denominator, 1)
     assert_gr(x = obj@denominator, y = 0)
@@ -48,7 +49,7 @@ checkclass <- function(obj){
     assert_same_length(obj@cases, obj@casenames)
 
 
-  } else if(assert_custom_class(x = obj, c = c("casedetect"))){
+  } else if(inherits(obj, "casedetect")){
     assert_same_length(obj@cases, obj@casenames)
     assert_gr(x =sum(obj@cases), y = 0)
   }

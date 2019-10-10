@@ -2,18 +2,20 @@
 % Please edit documentation in R/perms.R
 \name{generate_composition_levels}
 \alias{generate_composition_levels}
-\title{Creates composition types from a vector of probabilities}
+\title{Determines the potential compositions from the cases names
+(e.g. composition levels)}
 \usage{
-generate_composition_levels(probs)
+generate_composition_levels(names)
 }
 \arguments{
-\item{probs}{Named vector of probabilities}
+\item{names}{character vector of case names}
 }
 \value{
-Returns a named vector of 0s.
+Returns a vector of composition levels
 }
 \description{
-Creates composition types from a vector of probabilities
+Determines the potential compositions from the cases names
+(e.g. composition levels)
 }
 \details{
 Creates a named vector of all combinations for the names
@@ -23,11 +25,13 @@ Creates a named vector of all combinations for the names
 \examples{
 \dontrun{
 
-probs <- c("a" = 0.5, "b" = 0.3, "c" = 0.2)
-icer:::generate_composition_levels(probs = probs)
+obj <- new("casedetect")
+obj@cases <- c(50, 50, 100)
+obj@casenames <- c("a", "b", "c")
+
+icer:::generate_composition_levels(names = obj@casenames)
 
 #> a     b     c   a/b   a/c   b/c a/b/c
-#> 0     0     0     0     0     0     0
 
 }
 }

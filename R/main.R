@@ -192,7 +192,7 @@ get_join_comp_moi_prob <- function(obj, multi_dens, w){
    prob.mat <- apply(prob.mat, 2, weighted.mean, w)
 
   } else if(inherits(obj, "casedetect")){
-    prob.mat <- apply(prob.mat, 2, weighted.mean, w)
+    prob.mat <- apply(multi_dens, 2, weighted.mean, w)
   }
   return(prob.mat)
 }
@@ -231,6 +231,9 @@ ll_function <- function(obj, params, data, pci_list,
 #'   a negative binomial is used. `
 #' @param size Starting value for the negative binomial size parameter.
 #'   Default = 100.
+#' @param boot_iter Bootstrap iterations. Default = 10000
+#' @param plot Boolean for default plotting the bootsrap results. Default = TRUE
+#' @param quantiles Vector of length 2 for the quantiles used. Default = `c(0.025, 0.975)`
 #' @param lower Vector of lower bounds used in fitting. Default = NULL, which will
 #'   create a vector with 0.0001 for each frequency and 0.1 for mu (and 1 for size).
 #' @param upper Vector of upper bounds used in fitting. Default = NULL, which will
@@ -250,6 +253,8 @@ ll_function <- function(obj, params, data, pci_list,
 cooccurence_mle <- function(obj, density_func = independent,
                             max_moi = 25, poisson = FALSE,
                             size = 100, lower = NULL, upper = NULL,
+                            boot_iter = 10000, plot = TRUE,
+                            quantiles = c(0.025, 0.975),
                             ...) {
   # ----------------------------------------------------------------------------
   # format our input data
@@ -361,7 +366,7 @@ cooccurence_mle <- function(obj, density_func = independent,
     reps = boot_iter,
     probs = fitted_multinomial ,
     levels = names(fitted_multinomial),
-    total = sum(data),
+    total = sum(dat),
     plot = plot,
     real = real
   )
