@@ -4,3 +4,4 @@
 ^.*\.Rproj$
 ^\.travis\.yml$
 ^\.Rproj\.user$
+^icer\.Rproj$
