@@ -25,12 +25,23 @@
 #' }
 
 moi_perms <- function(m, n = 3) {
+
   expr <- parse(text = paste0("expand.grid(",
                               paste(rep("0:m", n - 1), collapse = ","),
                               ")"))
   X <- t(as.matrix(eval(expr)))
-  X <- X[, colSums(X) <= m]
-  X <- t(rbind(X, m - colSums(X)))
+
+  if (n == 2) {
+
+    X <- t(rbind(X, X[rev(1:ncol(X))]))
+
+  } else {
+
+    X <- X[, colSums(X) <= m]
+    X <- t(rbind(X, m - colSums(X)))
+
+  }
+
   colnames(X) <- NULL
   return(X)
 
