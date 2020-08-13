@@ -2,7 +2,8 @@
 dens_plot <- function(x, real, levels,
                      var = "variable", val = "value",
                      quantiles = c(0.025, 0.975),
-                     scales = "free", ncol = 5) {
+                     scales = "free", ncol = 5,
+                     density = TRUE) {
 
 
   if(!is.data.frame(real)) {
@@ -50,6 +51,8 @@ dens_plot <- function(x, real, levels,
                   "value"=rep(0,sum(is.na(match(levels, real[[var]]))))
                 ))
 
+  if (density) {
+
   g1 <- ggplot(x) +
     geom_density(aes(x = .data[[val]], y = ..density..),
                  color = "black", fill = "white") +
@@ -69,6 +72,55 @@ dens_plot <- function(x, real, levels,
           plot.title = element_text(hjust = 0.5),
           strip.text = element_text(size = 12))
 
+
+  } else {
+
+    tbs <- lapply(unique(x$variable), function(i) {
+      vls <- table(x$value[x$variable==i])/sum(table(x$value[x$variable==i]))
+      data.frame(x = as.numeric(names(vls)), y = as.numeric(vls), variable = i)
+    })
+    new_x <- do.call(rbind, tbs)
+
+    alt_x <- new_x
+    for(i in unique(x$variable)) {
+      alt_x <- alt_x[!(alt_x$variable == i & alt_x$x < sum_melt$q_low[sum_melt$variable == i]),]
+      alt_x <- alt_x[!(alt_x$variable == i & alt_x$x > sum_melt$q_high[sum_melt$variable == i]),]
+    }
+
+    quant_x <- new_x
+    for(i in unique(x$variable)) {
+      quant_x <- quant_x[(quant_x$variable == i & quant_x$x < sum_melt$q_low[sum_melt$variable == i]) |
+                           (quant_x$variable == i & quant_x$x > sum_melt$q_high[sum_melt$variable == i]) |
+                           quant_x$variable != i ,]
+
+    }
+
+    int_breaks <- function(x, n = 5) {
+      l <- pretty(x, n)
+      l[abs(l %% 1) < .Machine$double.eps ^ 0.5]
+    }
+
+    g1 <- ggplot(new_x) +
+      geom_bar(aes(x=x, y = y), stat = "identity", fill = "white", color = "black", width = 1, size = 1) +
+      geom_bar(aes(x=x, y = y), data = alt_x, stat = "identity", fill = "#002366", linetype = 0, width = 1) +
+      geom_bar(aes(x=x, y = y), data = quant_x, stat = "identity", fill = "white", linetype = 0,width = 1) +
+      # geom_step(aes(x=.data[[val]], y=..density..), data = x, colour = "black",
+      #           stat="bin", binwidth=1, direction = "mid") +
+      geom_vline(data = sum_melt, mapping = aes(xintercept = .data$mdx),
+                 col = "white", size = 1) +
+      geom_vline(data = real, mapping = aes(xintercept = .data[[val]]),
+                 col = "#e62400", size = 1, linetype = "dashed") +
+      xlab("Counts") + ylab("Density") +
+      scale_x_continuous(breaks = int_breaks) +
+      facet_wrap( ~ .data[[var]], scales = scales, ncol=ncol)  + theme_bw() +
+      theme(axis.text.x = element_text(),
+            panel.spacing = unit(10, units = "pt"),
+            axis.title.y = element_text(size = 12),
+            plot.title = element_text(hjust = 0.5),
+            strip.text = element_text(size = 12))
+  }
+
+  g1
 
 }
 
@@ -128,6 +180,7 @@ coinf_plot <- function(reps = 5000, probs, levels, total, real, plot = TRUE,
 #'
 #' @examples
 #'
+#' \dontrun{
 #' library(tidyr)
 #' library(ggplot2)
 #'
@@ -144,7 +197,7 @@ coinf_plot <- function(reps = 5000, probs, levels, total, real, plot = TRUE,
 #'   geom_boxplot() +
 #'   scale_x_reordered() +
 #'   facet_wrap(~ metric, scales = "free_x")
-#'
+#' }
 reorder_within <- function(x, by, within, fun = mean, sep = "___", ...) {
   new_x <- paste(x, within, sep = sep)
   stats::reorder(new_x, by, FUN = fun)

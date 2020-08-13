@@ -346,11 +346,11 @@ independent <- function(params, data, pci_list,  max_moi = 25) {
 #'
 #'   `k = c("k0"=0.5)` - The probability of choosing the same event as the first
 #'    drawn event will be mutliplied by 0.5
+#'
 #'   `k = c("k1"=0.5,"k2"=2)` - The probability of choosing the first element in
 #'    x again if it was drawn first will be multiplied by 0.5, whereas if the
 #'    second element was drawn first then the probability of picking it again is
 #'    doubled.
-#'    drawn event will be mutliplied by 0.5
 #'
 #'   Interferences, passed as a named vector, with names "k_<n>_<m>":
 #'
@@ -359,7 +359,7 @@ independent <- function(params, data, pci_list,  max_moi = 25) {
 #'    of drawing event 1 if event 3 was drawn first is doubled, and vice versa.
 #'    The probability of drawing event 2 if event 3 was drawn first is doubled,
 #'    and vice versa.
-#'    drawn event will be mutliplied by 0.5
+#'
 #'    Interferences are thus symmetrical between events.
 #'
 #' @return Returns probability density vector of length equal to `length(prob)`

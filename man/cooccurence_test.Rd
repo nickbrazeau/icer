@@ -4,9 +4,19 @@
 \alias{cooccurence_test}
 \title{Co-occurence test}
 \usage{
-cooccurence_test(data, density_func = independent, max_moi = 25,
-  poisson = FALSE, size = 100, boot_iter = 10000, plot = TRUE,
-  quantiles = c(0.025, 0.975), lower = NULL, upper = NULL, ...)
+cooccurence_test(
+  data,
+  density_func = independent,
+  max_moi = 25,
+  poisson = FALSE,
+  size = 100,
+  boot_iter = 10000,
+  plot = TRUE,
+  quantiles = c(0.025, 0.975),
+  lower = NULL,
+  upper = NULL,
+  ...
+)
 }
 \arguments{
 \item{data}{Observed data. Either as a named vector or a 2 column
