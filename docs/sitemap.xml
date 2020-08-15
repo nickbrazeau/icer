@@ -19,6 +19,9 @@
     <loc>https:/ojwatson.github.io/icer//reference/independent.html</loc>
   </url>
   <url>
+    <loc>https:/ojwatson.github.io/icer//reference/infection_probabilities.html</loc>
+  </url>
+  <url>
     <loc>https:/ojwatson.github.io/icer//reference/infection_types.html</loc>
   </url>
   <url>
@@ -31,9 +34,9 @@
     <loc>https:/ojwatson.github.io/icer//reference/moi_perms.html</loc>
   </url>
   <url>
-    <loc>https:/ojwatson.github.io/icer//reference/multi_dens.html</loc>
+    <loc>https:/ojwatson.github.io/icer//reference/pipe.html</loc>
   </url>
   <url>
-    <loc>https:/ojwatson.github.io/icer//reference/pipe.html</loc>
+    <loc>https:/ojwatson.github.io/icer//reference/reorder_within.html</loc>
   </url>
 </urlset>

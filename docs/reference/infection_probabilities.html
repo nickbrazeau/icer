@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Independent model of strain acquisition — independent • icer</title>
+<title>Create multinomial distribution for infection probabilities — infection_probabilities • icer</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Independent model of strain acquisition — independent" />
-<meta property="og:description" content="Independent model of strain acquisition" />
+<meta property="og:title" content="Create multinomial distribution for infection probabilities — infection_probabilities" />
+<meta property="og:description" content="Create multinomial distribution for infection probabilities" />
 
 
 
@@ -106,36 +106,30 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Independent model of strain acquisition</h1>
+    <h1>Create multinomial distribution for infection probabilities</h1>
     
-    <div class="hidden name"><code>independent.Rd</code></div>
+    <div class="hidden name"><code>infection_probabilities.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Independent model of strain acquisition</p>
+    <p>Create multinomial distribution for infection probabilities</p>
     </div>
 
-    <pre class="usage"><span class='fu'>independent</span>(<span class='no'>params</span>, <span class='no'>data</span>, <span class='no'>pci_list</span>, <span class='kw'>max_moi</span> <span class='kw'>=</span> <span class='fl'>25</span>)</pre>
+    <pre class="usage"><span class='fu'>infection_probabilities</span>(<span class='no'>multi_dens</span>, <span class='no'>params</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
+      <th>multi_dens</th>
+      <td><p>Matrix where each row gives the probability density of
+each infection type for a given multiplicity of infection.</p></td>
+    </tr>
+    <tr>
       <th>params</th>
-      <td><p>Vector of parameters including the frequency of each species
-and the mean moi mu.</p></td>
-    </tr>
-    <tr>
-      <th>data</th>
-      <td><p>Real data to compare model predictions to.</p></td>
-    </tr>
-    <tr>
-      <th>pci_list</th>
-      <td><p>Permutation, composition and infections list.</p></td>
-    </tr>
-    <tr>
-      <th>max_moi</th>
-      <td><p>Maxuimum infction composition explored. Default = 25.</p></td>
+      <td><p>Parameter vector. Must contain at least one value named `mu`,
+which is the mean muliplicity of infection. Could also contain `size` in
+which case negative binomial distribution is used. See details.</p></td>
     </tr>
     </table>
 
@@ -144,9 +138,33 @@ and the mean moi mu.</p></td>
     <p>Returns a named multinomial probability distribution.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>For a given frequency of each strain and mean moi, returns the
-  related multionomial distribution describing each infection type.</p>
+    <p>Using either a poisson or negative binomial distribution, the
+  probability of drawing `1:nrow(multi_dens)` for the parmeters provided is
+  calculated. These are used as weights to then calculate the weighted mean
+  probability of each infection type (the columns in `multi_dens`).</p>
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
+
+<span class='co'># create our arguments</span>
+<span class='no'>multi_dens</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0.5</span>,<span class='fl'>0.3</span>,<span class='fl'>0.2</span>,<span class='fl'>0</span>,<span class='fl'>0</span>,<span class='fl'>0</span>,<span class='fl'>0</span>,
+                       <span class='fl'>0.25</span>,<span class='fl'>0.09</span>,<span class='fl'>0.04</span>,<span class='fl'>0.3</span>,<span class='fl'>0.2</span>,<span class='fl'>0.12</span>,<span class='fl'>0</span>),
+                        <span class='kw'>nrow</span> <span class='kw'>=</span> <span class='fl'>2</span>,<span class='kw'>byrow</span><span class='kw'>=</span><span class='fl'>TRUE</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/colnames.html'>colnames</a></span>(<span class='no'>multi_dens</span>) <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"a"</span>, <span class='st'>"b"</span>, <span class='st'>"c"</span>, <span class='st'>"a/b"</span>, <span class='st'>"a/c"</span>, <span class='st'>"b/c"</span>, <span class='st'>"a/b/c"</span>)
+
+<span class='co'># first calculating using a poisson</span>
+<span class='no'>params</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"mu"</span> <span class='kw'>=</span> <span class='fl'>2</span>)
+<span class='fu'>infection_probabilities</span>(<span class='no'>multi_dens</span>, <span class='no'>params</span>)
+<span class='co'>#&gt;     a     b     c   a/b   a/c   b/c a/b/c</span>
+<span class='co'>#&gt; 0.375 0.195 0.120 0.150 0.100 0.060 0.000</span>
+
+<span class='co'># no using the negative binomial</span>
+<span class='no'>params</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"mu"</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='st'>"size"</span> <span class='kw'>=</span> <span class='fl'>1</span>)
+<span class='fu'>infection_probabilities</span>(<span class='no'>multi_dens</span>, <span class='no'>params</span>)
+<span class='co'>#&gt;     a     b     c   a/b   a/c   b/c a/b/c</span>
+<span class='co'>#&gt; 0.400 0.216 0.136 0.120 0.080 0.048 0.000</span>
+
+}</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
