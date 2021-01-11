@@ -2,8 +2,7 @@
 dens_plot <- function(x, real, levels,
                      var = "variable", val = "value",
                      quantiles = c(0.025, 0.975),
-                     scales = "free", ncol = 5,
-                     density = TRUE) {
+                     scales = "free", ncol = 5) {
 
 
   if(!is.data.frame(real)) {
@@ -51,8 +50,6 @@ dens_plot <- function(x, real, levels,
                   "value"=rep(0,sum(is.na(match(levels, real[[var]]))))
                 ))
 
-  if (density) {
-
   g1 <- ggplot(x) +
     geom_density(aes(x = .data[[val]], y = ..density..),
                  color = "black", fill = "white") +
@@ -73,59 +70,23 @@ dens_plot <- function(x, real, levels,
           strip.text = element_text(size = 12))
 
 
-  } else {
-
-    tbs <- lapply(unique(x$variable), function(i) {
-      vls <- table(x$value[x$variable==i])/sum(table(x$value[x$variable==i]))
-      data.frame(x = as.numeric(names(vls)), y = as.numeric(vls), variable = i)
-    })
-    new_x <- do.call(rbind, tbs)
-
-    alt_x <- new_x
-    for(i in unique(x$variable)) {
-      alt_x <- alt_x[!(alt_x$variable == i & alt_x$x < sum_melt$q_low[sum_melt$variable == i]),]
-      alt_x <- alt_x[!(alt_x$variable == i & alt_x$x > sum_melt$q_high[sum_melt$variable == i]),]
-    }
-
-    quant_x <- new_x
-    for(i in unique(x$variable)) {
-      quant_x <- quant_x[(quant_x$variable == i & quant_x$x < sum_melt$q_low[sum_melt$variable == i]) |
-                           (quant_x$variable == i & quant_x$x > sum_melt$q_high[sum_melt$variable == i]) |
-                           quant_x$variable != i ,]
-
-    }
-
-    int_breaks <- function(x, n = 5) {
-      l <- pretty(x, n)
-      l[abs(l %% 1) < .Machine$double.eps ^ 0.5]
-    }
-
-    g1 <- ggplot(new_x) +
-      geom_bar(aes(x=x, y = y), stat = "identity", fill = "white", color = "black", width = 1, size = 1) +
-      geom_bar(aes(x=x, y = y), data = alt_x, stat = "identity", fill = "#002366", linetype = 0, width = 1) +
-      geom_bar(aes(x=x, y = y), data = quant_x, stat = "identity", fill = "white", linetype = 0,width = 1) +
-      # geom_step(aes(x=.data[[val]], y=..density..), data = x, colour = "black",
-      #           stat="bin", binwidth=1, direction = "mid") +
-      geom_vline(data = sum_melt, mapping = aes(xintercept = .data$mdx),
-                 col = "white", size = 1) +
-      geom_vline(data = real, mapping = aes(xintercept = .data[[val]]),
-                 col = "#e62400", size = 1, linetype = "dashed") +
-      xlab("Counts") + ylab("Density") +
-      scale_x_continuous(breaks = int_breaks) +
-      facet_wrap( ~ .data[[var]], scales = scales, ncol=ncol)  + theme_bw() +
-      theme(axis.text.x = element_text(),
-            panel.spacing = unit(10, units = "pt"),
-            axis.title.y = element_text(size = 12),
-            plot.title = element_text(hjust = 0.5),
-            strip.text = element_text(size = 12))
-  }
-
-  g1
-
 }
 
+#' Perform a bootstrap and plot the expected versus observed infection distributions
+#' @param boot_iter Bootstrap iterations. Default = 10000
+#' @param plot Boolean for default plotting the bootsrap results. Default = TRUE
+#' @param quantiles Vector of length 2 for the quantiles used. Default = `c(0.025, 0.975)`
+#'
+#' @details
+#' \enumerate{
+#'        \item Bostrap from the fitted multinomial probabilities
+#'        \item Plot the simulated densities
+#'        \item Compare to the observed data
+#'   }
+#'
+#' @return ggplot object
 
-# boostrap from the probabilities, create the densities and compare to real
+
 coinf_plot <- function(reps = 5000, probs, levels, total, real, plot = TRUE,
                        quantiles = c(0.025, 0.975),...) {
 
@@ -152,67 +113,4 @@ coinf_plot <- function(reps = 5000, probs, levels, total, real, plot = TRUE,
   }
   invisible(list("plot" = g1, "vals" = sim_melt))
 
-}
-
-
-#' Reorder an x or y axis within facets
-#'
-#' Reorder a column before plotting with faceting, such that the values are ordered
-#' within each facet. This requires two functions: \code{reorder_within} applied to
-#' the column, then either \code{scale_x_reordered} or \code{scale_y_reordered} added
-#' to the plot.
-#' This is implemented as a bit of a hack: it appends ___ and then the facet
-#' at the end of each string.
-#'
-#' @param x Vector to reorder.
-#' @param by Vector of the same length, to use for reordering.
-#' @param within Vector of the same length that will later be used for faceting
-#' @param fun Function to perform within each subset to determine the resulting
-#' ordering. By default, mean.
-#' @param sep Separator to distinguish the two. You may want to set this manually
-#' if ___ can exist within one of your labels.
-#' @param ... In \code{reorder_within} arguments passed on to \code{\link{reorder}}.
-#' In the scale functions, extra arguments passed on to
-#' \code{\link[ggplot2]{scale_x_discrete}} or \code{\link[ggplot2]{scale_y_discrete}}.
-#'
-#' @source "Ordering categories within ggplot2 Facets" by Tyler Rinker:
-#' \url{https://trinkerrstuff.wordpress.com/2016/12/23/ordering-categories-within-ggplot2-facets/}
-#'
-#' @examples
-#'
-#' \dontrun{
-#' library(tidyr)
-#' library(ggplot2)
-#'
-#' iris_gathered <- gather(iris, metric, value, -Species)
-#'
-#' # reordering doesn't work within each facet (see Sepal.Width):
-#' ggplot(iris_gathered, aes(reorder(Species, value), value)) +
-#'   geom_boxplot() +
-#'   facet_wrap(~ metric)
-#'
-#' # reorder_within and scale_x_reordered work.
-#' # (Note that you need to set scales = "free_x" in the facet)
-#' ggplot(iris_gathered, aes(reorder_within(Species, value, metric), value)) +
-#'   geom_boxplot() +
-#'   scale_x_reordered() +
-#'   facet_wrap(~ metric, scales = "free_x")
-#' }
-reorder_within <- function(x, by, within, fun = mean, sep = "___", ...) {
-  new_x <- paste(x, within, sep = sep)
-  stats::reorder(new_x, by, FUN = fun)
-}
-
-
-#' @rdname reorder_within
-scale_x_reordered <- function(..., sep = "___") {
-  reg <- paste0(sep, ".+$")
-  ggplot2::scale_x_discrete(labels = function(x) gsub(reg, "", x), ...)
-}
-
-
-#' @rdname reorder_within
-scale_y_reordered <- function(..., sep = "___") {
-  reg <- paste0(sep, ".+$")
-  ggplot2::scale_y_discrete(labels = function(x) gsub(reg, "", x), ...)
 }
